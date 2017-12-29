@@ -1,0 +1,7 @@
+Enter username.
+For example: @pyflood
+
+You can send multiple usernames separated by a space or a line break.
+For example: @ru_python @pyflood @ru_python_beginners
+
+Enjoy!
