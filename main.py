@@ -7,7 +7,7 @@ from multiprocessing.pool import ThreadPool
 token = ''
 bot = telebot.TeleBot(token)
 
-@bot.message_handler(commands=['help'])
+@bot.message_handler(commands=['help', 'start'])
 def help(message):
     with open('help.txt') as help_message:
         bot.send_message(chat_id=message.from_user.id, text=help_message.read())
@@ -31,6 +31,7 @@ def check(links):
         bot.send_message(chat_id=links[1], text=result, parse_mode='Markdown')
     except Exception:
         print(traceback.format_exc())
+        bot.send_message(chat_id=links[1], text=f'Invalid username {links[0]}.')
 
 if __name__ == '__main__':
     bot.polling(none_stop=True, interval=0)
