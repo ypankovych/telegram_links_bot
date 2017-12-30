@@ -1,40 +1,16 @@
-import botan
-import telebot
-import requests
-import traceback
-from bs4 import BeautifulSoup
-from config import token, botan_key
-from multiprocessing.pool import ThreadPool
+import os
+import config
+from bot import bot
+from flask import Flask, request
 
-bot = telebot.TeleBot(token)
+bot.remove_webhook()
+bot.set_webhook(f'https://<app_name>.herokuapp.com/{config.token}')
+server = Flask(__name__)
 
-@bot.message_handler(commands=['help', 'start'])
-def help(message):
-    with open('help.txt') as help_message:
-        bot.send_message(chat_id=message.from_user.id, text=help_message.read())
-        botan.track(botan_key, message.chat.id, message, 'Start bot')
-
-@bot.message_handler(content_types=['text'])
-def messages_handler(message):
-    with ThreadPool(100) as pool:
-        pool.map(check, [[x, message] for x in message.text.split() if not x.startswith('/')])
-
-def check(links):
-    data = requests.get(f'https://t.me/{links[0][1:]}', timeout = 1000).text
-    soup_object = BeautifulSoup(data, 'html.parser')
-    try:
-        if not soup_object.find('i', class_='tgme_icon_user'):
-            if soup_object.find('a', 'tgme_action_button_new').text == 'Send Message':
-                result = f'✅ {links[0]}: (<b>User</b>)'
-            else:
-                result = f'✅ {links[0]}: (<b>{soup_object.find("a", class_="tgme_action_button_new").text.split()[1]}</b>)'
-        else:
-            result = f'❌ {links[0]}: (<b>Not found</b>)'
-        bot.send_message(chat_id=links[1].chat.id, text=result, parse_mode='HTML')
-        botan.track(botan_key, links[1].chat.id, links[1], f'Checked username: {links[0]}')
-    except Exception:
-        print(traceback.format_exc())
-        bot.send_message(chat_id=links[1].chat.id, text=f'Invalid username {links[0]}.')
+@server.route(f"/{config.token}", methods=['POST'])
+def getMessage():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return "!", 200
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True, interval=0)
+    server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '5000')))
