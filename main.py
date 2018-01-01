@@ -11,6 +11,7 @@ server = Flask(__name__)
 @server.route("/", methods=['GET'])
 def keepAlive():
     # Just to not let the server on the free Heroku account go to sleep
+    # http://kaffeine.herokuapp.com/
     print('Keep alive: OK.')
     return '!', 200
 
