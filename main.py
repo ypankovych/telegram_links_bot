@@ -1,5 +1,6 @@
 import os
 import config
+import telebot
 from bot import bot
 from flask import Flask, request
 
